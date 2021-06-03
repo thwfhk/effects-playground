@@ -10,7 +10,7 @@
 {-# LANGUAGE GADTs #-}
 
 -- Implementation of Algebraic Effects using Free Monad and Datatype a la Carte
--- From the paper: T. Schrijvers, “Effect Handlers in Scope.” 
+-- From the paper: “Effect Handlers in Scope.”
 
 module AlgebraicEffects where
 
@@ -98,7 +98,7 @@ fwdPP op = \s -> Op $ fmap (\k -> k s) op
 
 -------------------------------
 -- | Void
-data Void k
+data Void k deriving Show
 instance Functor Void where
   fmap f x = case x of
 
