@@ -23,7 +23,7 @@ instance Functor sig => Monad (Free sig) where
   Op op    >>= f = Op (fmap (>>=f) op)
 
 -- | Composition of sig/operations/effects
-data (sig1 + sig2) a = Inl (sig1 a) | Inr (sig2 a)
+data (sig1 + sig2) a = Inl (sig1 a) | Inr (sig2 a) deriving Show
 instance (Functor sig1, Functor sig2) => Functor (sig1 + sig2) where
   fmap f (Inl x) = Inl (fmap f x)
   fmap f (Inr y) = Inr (fmap f y)
@@ -50,7 +50,8 @@ fwdPP op = \s -> Op $ fmap (\k -> k s) op
 
 --------------------------------
 -- | Void
-data Void k
+-- data Void k
+data Void k = Void deriving Show
 instance Functor Void where
   fmap f x = case x of
 

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 60c80c0412c02d60a2eb7a5f17bb34346ed4356808df45d12c065100fe846d96
+-- hash: 9a6f5f0df70f14c30779677f5b8c90f692b1a8934a782199e449a31acc9305df
 
 name:           effects-playground
 version:        0.1.0.0
@@ -31,10 +31,12 @@ library
       Evil
       Expression
       FreeMonad
+      FreeMonad2
       Grammar
       ModularCarrier
       MonadTransformer
       ScopedEffects
+      ScopedQwQ
       SyntaxTree
   other-modules:
       Paths_effects_playground

@@ -1,4 +1,5 @@
-{-# LANGUAGE StandaloneDeriving, UndecidableInstances, DeriveFunctor, RankNTypes #-}
+{-# LANGUAGE StandaloneDeriving, UndecidableInstances, DeriveFunctor,
+    RankNTypes, TypeOperators #-}
 module ScopedEffects where
 
 import Control.Monad (liftM, liftM2, ap)
@@ -26,7 +27,7 @@ data BaseAlg f g c d = BaseAlg
   , enterB :: g (c d) -> d
   }
 
-data EndoAlg f g c= EndoAlg
+data EndoAlg f g c = EndoAlg
   { returnE :: forall x. x -> c x
   , callE   :: forall x. f (c x) -> c x
   , enterE  :: forall x. g (c (c x)) -> c x}
@@ -40,6 +41,17 @@ eval :: (Functor f, Functor g) => EndoAlg f g c -> BaseAlg f g c b -> (a -> b) -
 eval ealg balg gen (Return x) = gen x
 eval ealg balg gen (Call op)  = (callB balg . fmap (eval ealg balg gen)) op
 eval ealg balg gen (Enter sc) = (enterB balg . fmap (hcata ealg . fmap (eval ealg balg gen))) sc
+
+-- Combine two operations
+
+data (sig1 + sig2) a = Inl (sig1 a) | Inr (sig2 a)
+instance (Functor sig1, Functor sig2) => Functor (sig1 + sig2) where
+  fmap f (Inl x) = Inl (fmap f x)
+  fmap f (Inr y) = Inr (fmap f y)
+
+(#) :: (sig1 b -> b) -> (sig2 b -> b) -> ((sig1 + sig2) b -> b)
+(alg1 # alg2) (Inl op) = alg1 op
+(alg1 # alg2) (Inr op) = alg2 op
 
 ---------------------------------------------------------------
 -- Example 1
@@ -129,3 +141,21 @@ prog2' = depth 2 (or (depth 2 (or (or (return 1) (return 2)) (return 3))) (or (r
 
 ---------------------------------------------------------------
 -- Example 3: combine scoped operations with algebraic operations
+
+data Id a = Id a deriving (Functor, Show)
+
+data Add a = Add a a deriving (Functor, Show)
+
+add :: Functor g => Prog Add g a -> Prog Add g a -> Prog Add g a
+add x y = Call (Add x y)
+
+addnum :: (Functor f, Functor g, Num a) => Prog (Add + f) g a -> Prog f g a
+addnum = eval ealg (BaseAlg (callb # Call) Enter) return
+  where
+    callb :: (Num a, Functor f, Functor g) => Add (Prog f g a) -> Prog f g a
+    callb (Add px py) = do x <- px; y <- py; return (x+y)
+    ealg :: EndoAlg (Add + f) g (Prog f g)
+    ealg = EndoAlg Return (calle # Call) Enter
+      where
+        calle :: Add (Prog f g x) -> Prog f g x
+        calle = undefined -- NOTE: This is the problem!
