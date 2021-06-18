@@ -139,32 +139,28 @@ eval' ealg balg gen (Call op)  = (callB balg . fmap (eval' ealg balg gen)) op
 eval' ealg balg gen (Enter sc) = (enterB balg . fmap (fmap unNestZ . hcata' ealg (callE0 ealg) . fmap (NestZ . eval' ealg balg gen))) sc
 --eval ealg balg gen (Enter sc)= (enterB balg . fmap (               hcata ealg                . fmap (        eval ealg balg gen))) sc
 
+-- f = Add+f, g = g, c = Prog f g, b = Prog f g a
 addnum :: (Functor f, Functor g, Num a) => Prog (Add + f) g a -> Prog f g a
-addnum = eval' ealg balg return
+addnum = eval' (EndoAlg' Return Enter calle0 lift) (BaseAlg (callb # Call) Enter) return
   where
-    balg :: (Functor f, Functor g, Num a) => BaseAlg (Add + f) g (Prog f g) (Prog f g a)
-    balg = (BaseAlg (callb # Call) Enter)
-    callb :: (Functor f, Functor g, Num a) => Add (Prog f g a) -> Prog f g a
+    -- callb :: (Functor f, Functor g, Num a) => Add (Prog f g a) -> Prog f g a
     callb (Add px py) = do x <- px; y <- py; return (x+y)
 
-    ealg :: (Functor f, Functor g, Num a) => EndoAlg' (Add + f) g (Prog f g) (Prog f g a)
-    ealg = EndoAlg' Return Enter calle0 lift
+    -- calle0 :: (Functor f, Functor g, Num a) => (Add + f) (Prog f g (Nested (Prog f g) (Prog f g a) Zero)) -> (Prog f g (Nested (Prog f g) (Prog f g a) Zero))
+    calle0 = addalg0 # Call
       where
-        -- calle0 :: (Functor f, Functor g, Num a) => (Add + f) (Prog f g (Nested (Prog f g) (Prog f g a) Zero)) -> (Prog f g (Nested (Prog f g) (Prog f g a) Zero))
-        calle0 = addalg0 # Call
-        -- addalg0 :: (Functor f, Functor g, Num a) => Add (Prog f g (Nested (Prog f g) (Prog f g a) Zero)) -> Prog f g (Nested (Prog f g) (Prog f g a) Zero)
         addalg0 (Add px py) = do 
           x <- px; 
           y <- py;
           return $ NestZ $ callb (Add (unNestZ x) (unNestZ y))
 
-        -- lift :: (Functor f, Functor g, Num a) => ((Add + f) ((Prog f g) (Nested (Prog f g) (Prog f g a) n)) -> (Prog f g) (Nested (Prog f g) (Prog f g a) n)) -> (Add + f) ((Prog f g) (Nested (Prog f g) (Prog f g a) (Succ n))) -> (Prog f g) (Nested (Prog f g) (Prog f g a) (Succ n))
-        lift qwq = qwqadd # Call
-          where
-            qwqadd (Add px py)= do
-              x <- px
-              y <- py
-              return $ NestS $ qwq (Inl (Add (unNestS x) (unNestS y)))
+    -- lift :: (Functor f, Functor g, Num a) => ((Add + f) ((Prog f g) (Nested (Prog f g) (Prog f g a) n)) -> (Prog f g) (Nested (Prog f g) (Prog f g a) n)) -> (Add + f) ((Prog f g) (Nested (Prog f g) (Prog f g a) (Succ n))) -> (Prog f g) (Nested (Prog f g) (Prog f g a) (Succ n))
+    lift qwq = qwqadd # Call
+      where
+        qwqadd (Add px py)= do
+          x <- px
+          y <- py
+          return $ NestS $ qwq (Inl (Add (unNestS x) (unNestS y)))
 
 -- smart constructors
 add :: Prog (Add + sig2) g a -> Prog (Add + sig2) g a -> Prog (Add + sig2) g a
