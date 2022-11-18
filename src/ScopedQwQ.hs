@@ -58,6 +58,7 @@ allsols = eval (EndoAlg return call enter) (BaseAlg call enter) return
     call (Or xs ys) = xs ++ ys
     enter (Once []) = []
     enter (Once (xs : xss)) = xs
+    -- enter (Once (xs : xss)) = head xss -- twice
 
 -- failed attemp
 -- allsols :: Prog (Choice + Void) (Once + Void) a -> Prog Void Void [a]
@@ -143,10 +144,10 @@ eval' ealg balg gen (Enter sc) = (enterB balg . fmap (fmap unNestZ . hcata' ealg
 addnum :: (Functor f, Functor g, Num a) => Prog (Add + f) g a -> Prog f g a
 addnum = eval' (EndoAlg' Return Enter calle0 lift) (BaseAlg (callb # Call) Enter) return
   where
-    -- callb :: (Functor f, Functor g, Num a) => Add (Prog f g a) -> Prog f g a
+    callb :: (Functor f, Functor g, Num a) => Add (Prog f g a) -> Prog f g a
     callb (Add px py) = do x <- px; y <- py; return (x+y)
 
-    -- calle0 :: (Functor f, Functor g, Num a) => (Add + f) (Prog f g (Nested (Prog f g) (Prog f g a) Zero)) -> (Prog f g (Nested (Prog f g) (Prog f g a) Zero))
+    calle0 :: (Functor f, Functor g, Num a) => (Add + f) (Prog f g (Nested (Prog f g) (Prog f g a) Zero)) -> (Prog f g (Nested (Prog f g) (Prog f g a) Zero))
     calle0 = addalg0 # Call
       where
         addalg0 (Add px py) = do 
@@ -154,7 +155,7 @@ addnum = eval' (EndoAlg' Return Enter calle0 lift) (BaseAlg (callb # Call) Enter
           y <- py;
           return $ NestZ $ callb (Add (unNestZ x) (unNestZ y))
 
-    -- lift :: (Functor f, Functor g, Num a) => ((Add + f) ((Prog f g) (Nested (Prog f g) (Prog f g a) n)) -> (Prog f g) (Nested (Prog f g) (Prog f g a) n)) -> (Add + f) ((Prog f g) (Nested (Prog f g) (Prog f g a) (Succ n))) -> (Prog f g) (Nested (Prog f g) (Prog f g a) (Succ n))
+    lift :: (Functor f, Functor g, Num a) => ((Add + f) ((Prog f g) (Nested (Prog f g) (Prog f g a) n)) -> (Prog f g) (Nested (Prog f g) (Prog f g a) n)) -> (Add + f) ((Prog f g) (Nested (Prog f g) (Prog f g a) (Succ n))) -> (Prog f g) (Nested (Prog f g) (Prog f g a) (Succ n))
     lift qwq = qwqadd # Call
       where
         qwqadd (Add px py)= do
@@ -191,3 +192,11 @@ program3 :: Prog (Add + Choice) Once Int
 program3 = once (add (or (Return 1) (Return 2)) (or (return 10) (return 20)))
 -- >>> allsols . addnum $ program3
 -- [11]
+
+program4 :: Prog (Add + Choice) Once Int
+program4 = do
+  x <- once (add (or (Return 1) (Return 2)) (or (return 10) (return 20)))
+  or (Return x) (Return (x*10))
+-- >>> allsols . addnum $ program4
+-- [11,101,20,110]
+

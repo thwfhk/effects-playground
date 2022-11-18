@@ -56,28 +56,28 @@ instance (Functor sig1, Functor sig2) => Functor (sig1 + sig2) where
 
 class (Functor sub, Functor sup) => sub < sup where
   inj :: sub a -> sup a
-  -- prj :: sup a -> Maybe (sub a)
+  prj :: sup a -> Maybe (sub a)
 
 instance Functor sig => sig < sig where
   inj = id
-  -- prj = Just
+  prj = Just
 
 instance {-# OVERLAPS #-} (Functor sig1, Functor sig2) => sig1 < (sig1 + sig2) where
   inj         = Inl
-  -- prj (Inl x) = Just x
-  -- prj _       = Nothing
+  prj (Inl x) = Just x
+  prj _       = Nothing
 
 instance {-# OVERLAPS #-} (Functor sig1, sig < sig2) => sig < (sig1 + sig2) where
   inj         = Inr . inj
-  -- prj (Inr x) = prj x
-  -- prj _       = Nothing
+  prj (Inr x) = prj x
+  prj _       = Nothing
 
 inject :: (sub < sup) => sub (Free sup a) -> Free sup a
 inject = Op . inj
 
--- project :: (sub < sup) => Free sup a -> Maybe (sub (Free sup a))
--- project (Op x) = prj x
--- project _ = Nothing
+project :: (sub < sup) => Free sup a -> Maybe (sub (Free sup a))
+project (Op x) = prj x
+project _ = Nothing
 
 (#) :: (sig1 b -> b) -> (sig2 b -> b) -> ((sig1 + sig2) b -> b)
 (alg1 # alg2) (Inl op) = alg1 op

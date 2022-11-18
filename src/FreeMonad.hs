@@ -23,11 +23,13 @@ instance Functor sig => Monad (Free sig) where
   Op op    >>= f = Op (fmap (>>=f) op)
 
 -- | Composition of sig/operations/effects
+infixr +
 data (sig1 + sig2) a = Inl (sig1 a) | Inr (sig2 a) deriving Show
 instance (Functor sig1, Functor sig2) => Functor (sig1 + sig2) where
   fmap f (Inl x) = Inl (fmap f x)
   fmap f (Inr y) = Inr (fmap f y)
 
+infixr #
 (#) :: (sig1 b -> b) -> (sig2 b -> b) -> ((sig1 + sig2) b -> b)
 (alg1 # alg2) (Inl op) = alg1 op
 (alg1 # alg2) (Inr op) = alg2 op
@@ -43,7 +45,7 @@ fwd op = Op op
 
 -- | forward for parameter-passing style
 fwdPP :: Functor sig => sig (s -> Free sig b) -> (s -> Free sig b)
-fwdPP op = \s -> Op $ fmap (\k -> k s) op
+fwdPP op = \s -> Op $ fmap ($s) op
 
 -- Some common operations, the most general form is 
 --    data Sig a b k = Op a (b -> k)
@@ -56,8 +58,8 @@ instance Functor Void where
   fmap f x = case x of
 
 -- Void is usually used as the leftmost
-handleV :: Free Void a -> a
-handleV (Return x) = x
+run :: Free Void a -> a
+run (Return x) = x
 
 --------------------------------
 -- | Fail
@@ -133,7 +135,7 @@ prog2' =
   Return s
 
 runProg :: Free (State Int + (Decide + Void)) a -> a
-runProg = handleV . handleD . flip handleS 0
+runProg = run . handleD . flip handleS 0
 
 -- >>> runProg prog2
 -- 2

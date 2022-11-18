@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: e28013782bafaa7eb9fa4de3528cb8dd1393479a13024770b8b6a03afa46bc04
+-- hash: 60d9d77da02d31200aa6ceb1604f1ebacb5ede047132f5b63248f67b6dd2c31a
 
 name:           effects-playground
 version:        0.1.0.0
@@ -29,12 +29,20 @@ library
   exposed-modules:
       AlgebraicEffects
       ChoiceAdd
+      CutList
+      CutList2
       Evil
       Expression
+      Frank
       FreeMonad
+      Functorial.GooFwd
+      Functorial.ModScopeOps
+      Functorial.ScopeMonadTrans
+      Functorial.Union
       Grammar
       ModularCarrier
       MonadTransformer
+      NewState
       ScopedEffects
       ScopedQwQ
       SyntaxTree
@@ -45,6 +53,7 @@ library
   build-depends:
       base >=4.7 && <5
     , mtl
+    , transformers
   default-language: Haskell2010
 
 executable effects-playground-exe
@@ -58,6 +67,7 @@ executable effects-playground-exe
       base >=4.7 && <5
     , effects-playground
     , mtl
+    , transformers
   default-language: Haskell2010
 
 test-suite effects-playground-test
@@ -72,4 +82,5 @@ test-suite effects-playground-test
       base >=4.7 && <5
     , effects-playground
     , mtl
+    , transformers
   default-language: Haskell2010
