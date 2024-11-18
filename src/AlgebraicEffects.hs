@@ -2,8 +2,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE PatternSynonyms #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# LANGUAGE EmptyCase, EmptyDataDeriving #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -16,7 +14,6 @@ module AlgebraicEffects where
 
 import Prelude hiding ((||), fail)
 import Control.Monad (liftM, liftM2, ap)
-import Data.Typeable
 
 -- | Free Monad
 data Free sig a = Return a | Op (sig (Free sig a))

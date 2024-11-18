@@ -144,28 +144,54 @@ example2 = once2 (or2 (do put "4"; get) (return "2")) (\x -> return x)
 
 ----------------------------------------------------------------
 
-data ND3 k where
-  Fail3 :: ND3 k
-  Or3 :: (Bool -> k) -> ND3 k
-  Once3 :: (Prog (State String + ND3) a) -> (a -> k) -> ND3 k
+-- data ND3 k where
+--   Fail3 :: ND3 k
+--   Or3 :: (Bool -> k) -> ND3 k
+--   Once3 :: (Prog (State String + ND3) a) -> (a -> k) -> ND3 k
+-- 
+-- instance Functor ND3 where
+--   fmap k Fail3 = Fail3
+--   fmap f (Or3 k) = Or3 (f . k)
+--   fmap f (Once3 x k) = Once3 x (f . k)
+-- 
+-- nd3 :: Functor f => Prog (ND3 + f) a -> Prog f [a]
+-- -- nd3 :: Prog (State String + ND3) a -> Prog (State String) [a]
+-- nd3 = fold gen (alg # Op)
+--   where
+--     gen = return . return
+--     alg :: Functor f => ND3 (Prog f [a]) -> Prog f [a]
+--     alg Fail3 = return []
+--     alg (Or3 k) = do x <- k True; y <- k False; return (x ++ y)
+--     alg (Once3 m k) = do x <- nd3 m                -- general recursion
+--                          case x of [] -> return []
+--                                    (x:_) -> k x
 
-instance Functor ND3 where
+-- nd3 is not well-typed
+-- For the scoped computation in Once3, it is impossible to handle (State String) before handling ND3. 
+-- Because the previous handlers will ignore the computation in the parameter position.
+
+----------------------------------------------------------------
+data ND3 g k where
+  Fail3 :: ND3 g k
+  Or3 :: (Bool -> k) -> ND3 g k
+  Once3 :: (Prog (ND3 g + g) a) -> (a -> k) -> ND3 g k
+
+instance Functor (ND3 g) where
   fmap k Fail3 = Fail3
   fmap f (Or3 k) = Or3 (f . k)
   fmap f (Once3 x k) = Once3 x (f . k)
 
-nd3 :: Functor f => Prog (ND3 + f) a -> Prog f [a]
+nd3 :: Functor f => Prog (ND3 f + f) a -> Prog f [a]
 -- nd3 :: Prog (State String + ND3) a -> Prog (State String) [a]
 nd3 = fold gen (alg # Op)
   where
     gen = return . return
-    alg :: Functor f => ND3 (Prog f [a]) -> Prog f [a]
+    -- alg :: Functor f => ND3 (Prog f [a]) -> Prog f [a]
     alg Fail3 = return []
     alg (Or3 k) = do x <- k True; y <- k False; return (x ++ y)
     alg (Once3 m k) = do x <- nd3 m                -- general recursion
                          case x of [] -> return []
                                    (x:_) -> k x
 
--- nd3 is not well-typed
--- For the scoped computation in Once3, it is impossible to handle (State String) before handling ND3. 
--- Because the previous handlers will ignore the computation in the parameter position.
+-- >>> run $ (run . hState . insertNil . nd2 $ example2) ""
+-- ["4"]

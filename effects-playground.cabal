@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.33.0.
+-- This file has been generated from package.yaml by hpack version 0.34.4.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 60d9d77da02d31200aa6ceb1604f1ebacb5ede047132f5b63248f67b6dd2c31a
+-- hash: 3c06e84e9d5695a7157f3964336c8230c84eb18b1557364ce3d53f443bfc2b1e
 
 name:           effects-playground
 version:        0.1.0.0
@@ -43,6 +43,7 @@ library
       ModularCarrier
       MonadTransformer
       NewState
+      OrpheasState
       ScopedEffects
       ScopedQwQ
       SyntaxTree
